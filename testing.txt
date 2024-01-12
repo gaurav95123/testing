@@ -1,0 +1,177 @@
+api controller
+
+
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Costom;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+
+
+
+class CostomController extends Controller
+{
+
+    // function to create userss
+    public function createUser(Request $request)
+    {
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'email' => 'required|string|unique:costoms',
+            'phone' => 'required|numeric|digits:10',
+            'password' => 'required|min:6'
+
+        ]);
+        if ($validator->fails()) {
+            $result = array('status' => false, 'message' => 'validation error occured', 'error_message' => $validator->errors());
+            return response()->json($result, 400);
+        }
+
+        $cost = new Costom;
+        $cost->name = $request->name;
+        $cost->email = $request->email;
+        $cost->phone = $request->phone;
+        $cost->password = \Hash::make($request->password);
+        $cost->save();
+
+        if ($cost->id) {
+            $result = array('status' => true, 'message' => 'user created', 'data' => $cost);
+            $responseCode = 200;
+        } else {
+
+            $result = array('status' => false, 'message' => 'something went wrong');
+            $responseCode = 400;
+        }
+
+        return response()->json($result, $responseCode);
+    }
+
+
+
+    // function to return all users
+
+    public function getUsers()
+    {
+        $cost = Costom::get();
+        $result = array('status' => true, 'message' => count($cost) . " users fetched", 'data' => $cost);
+        $responseCode = 200;
+
+        return response()->json($result, $responseCode);
+    }
+
+    // function to return all users using single id
+
+    public function getUserDetail($id)
+    {
+        $cost = Costom::where('id', $id)->first();
+        if (!$cost) {
+            return response()->json(['staus' => false, 'message' => 'user not found'], 404);
+        }
+        $result = array('status' => true, 'message' => 'user found', 'data' => $cost);
+        $responseCode = 200;
+
+        return response()->json($result, $responseCode);
+    }
+
+    // function to  update users
+
+    public function updateUser(Request $request, $id)
+    {
+
+        $cost = Costom::where('id', $id)->first();
+        if (!$cost) {
+            return response()->json(['staus' => false, 'message' => 'user not found'], 404);
+        }
+
+
+        $validatr = Validator::make($request->all(), [
+            'name' => 'required|string',
+            'email' => 'required|string|unique:costoms',
+            'phone' => 'required|numeric|digits:10',
+
+
+        ]);
+        if ($validatr->fails()) {
+            $result = array('status' => false, 'message' => 'validation error occured', 'error_message' => $validatr->errors());
+            return response()->json($result, 400);
+        }
+
+        // update code
+        $cost = new Costom;
+        $cost->name = $request->name;
+        $cost->email = $request->email;
+        $cost->phone = $request->phone;
+
+        $cost->save();
+        $result = array('status' => true, 'message' => 'updated successfully', 'data' => $cost);
+        return response()->json($result, 200);
+    }
+
+    public function deleteUser($id)
+    {
+        $cost = Costom::where('id', $id)->first();
+        $cost->delete();
+        $result = array('status' => true, 'message' => 'user deleted !!');
+        return response()->json($result, 200);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+===========================================================================================================================================
+
+
+api route
+
+
+<?php
+
+use Illuminate\Http\Request;
+use App\Http\Controllers\API\CostomController;
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+Route::post('user-create', [CostomController::class, 'createUser']);
+Route::get('get-users', [CostomController::class, 'getUsers']);
+Route::get('get-user-detail/{id}', [CostomController::class, 'getUserDetail']);
+Route::put('user-update/{id}', [CostomController::class, 'updateUser']);
+Route::delete('user-delete/{id}', [CostomController::class, 'deleteUser']);
+
+
+
+
+
+
+
+
+
+
