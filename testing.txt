@@ -1,185 +1,140 @@
-api controller
+crud using laravel api
 
 
 <?php
 
 namespace App\Http\Controllers\API;
-
+use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Costom;
-use Illuminate\Support\Facades\Hash;
+use App\Models\Custom;
 use Illuminate\Support\Facades\Validator;
 
 
+class UserController extends Controller
 
-class CostomController extends Controller
 {
+    
+    // function to create user 
 
-    // function to create userss
-    public function createUser(Request $request)
-    {
+    public function createUser(Request $request ){
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'email' => 'required|string|unique:costoms',
+        $validator= Validator::make($request->all(),[
+            'name'=>'required|string',
+            'email'=>'required|string|unique:customs',
             'phone' => 'required|numeric|digits:10',
-            'password' => 'required|min:6'
+            'password'=>'required|min:6'
 
         ]);
-        if ($validator->fails()) {
+        if($validator->fails()){
             $result = array('status' => false, 'message' => 'validation error occured', 'error_message' => $validator->errors());
-            return response()->json($result, 400);
+            return response()->json($result, 400); //bad request
         }
 
-        $cost = new Costom;
-        $cost->name = $request->name;
-        $cost->email = $request->email;
-        $cost->phone = $request->phone;
-        $cost->password = \Hash::make($request->password);
+        $cost=new Custom;
+        $cost->name=$request->name;
+        $cost->email=$request->email;
+        $cost->phone=$request->phone;
+        $cost->password=\Hash::make($request->password);
         $cost->save();
 
-        if ($cost->id) {
-            $result = array('status' => true, 'message' => 'user created', 'data' => $cost);
-            $responseCode = 200;
-        } else {
+        if($cost->id){
+            $result=array('status'=>true,'message'=>'product created','data'=>$cost);
+            $responseCode=200; //success
 
-            $result = array('status' => false, 'message' => 'something went wrong');
-            $responseCode = 400;
         }
+        // this is for exception case 
+        else{
+            $result=array('status'=>true,'message'=>"something went wrong");
+            $responseCode=400;
+        }
+        return response()->json($result,$responseCode); 
 
-        return response()->json($result, $responseCode);
+    //    return response()->json(['status'=>'true', 'message'=>"Hello World",'data'=>$request->all()]);
     }
-
 
 
     // function to return all users
 
-    public function getUsers()
-    {
-        $cost = Costom::get();
-        $result = array('status' => true, 'message' => count($cost) . " users fetched", 'data' => $cost);
-        $responseCode = 200;
+    public function getUser(){
+        $cost=Custom::get();
+        $result=array('status'=>true,'message'=>count($cost)." user fatched",'data'=>$cost);
+    return response()->json($result,200);
 
-        return response()->json($result, $responseCode);
     }
 
-    // function to return all users using single id
 
-    public function getUserDetail($id)
-    {
-        $cost = Costom::where('id', $id)->first();
-        if (!$cost) {
-            return response()->json(['staus' => false, 'message' => 'user not found'], 404);
+//  function to return single user details
+
+    public function getUserDetail($id){
+        $cost=Custom::where('id',$id)->first();
+        if(!$cost)
+        {
+            return response()->json([ 'status'=>false,'message'=>'user not found'],404);
         }
-        $result = array('status' => true, 'message' => 'user found', 'data' => $cost);
-        $responseCode = 200;
 
-        return response()->json($result, $responseCode);
+        $result=array('status'=>true,'message'=>'user found','data'=>$cost);
+        return response()->json($result,200);
     }
 
-    // function to  update users
+    // update user code
 
-    public function updateUser(Request $request, $id)
+    public function updateUser(Request $request,$id )
     {
+        $cost=Custom::find($id);
 
-        $cost = Costom::where('id', $id)->first();
-        if (!$cost) {
-            return response()->json(['staus' => false, 'message' => 'user not found'], 404);
+        if(!$cost){
+            return response()->json(['status'=>false,'message'=>"user not found" ],404);
         }
 
+        // validation
 
-        $validatr = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'email' => 'required|string|unique:costoms',
-            'phone' => 'required|numeric|digits:10',
-
-
-        ]);
-        if ($validatr->fails()) {
-            $result = array('status' => false, 'message' => 'validation error occured', 'error_message' => $validatr->errors());
-            return response()->json($result, 400);
-        }
-
-        // update code
-        $cost = new Costom;
-        $cost->name = $request->name;
-        $cost->email = $request->email;
-        $cost->phone = $request->phone;
-
-        $cost->save();
-        $result = array('status' => true, 'message' => 'updated successfully', 'data' => $cost);
-        return response()->json($result, 200);
-    }
-
-    public function deleteUser($id)
-    {
-        $cost = Costom::where('id', $id)->first();
-        $cost->delete();
-        $result = array('status' => true, 'message' => 'user deleted !!');
-        return response()->json($result, 200);
-    }
-}
-=====================================================================================================
-#new update code
-
-   public function updateUser(Request $request, $id)
-    {
-        $cost = Costom::find($id);
-        if (!$cost) {
-            return response()->json(['staus' => false, 'message' => 'user not found'], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'email' => "required|string|unique:costoms,email," . $id,
+        $validator= Validator::make($request->all(),[
+            'name'=>'required|string',
+            // 'email'=>"required|string|unique:customs,email,".$id,
+            
+            'email' => "required|string|unique:customs,email,$id",
             'phone' => 'required|numeric|digits:10'
-
+          
 
         ]);
-        if ($validator->fails()) {
+        if($validator->fails()){
             $result = array('status' => false, 'message' => 'validation error occured', 'error_message' => $validator->errors());
-            return response()->json($result, 400);
+            return response()->json($result, 400); //bad request
         }
+        
         // update code
-        $cost = new Costom;
-        $cost->name = $request->name;
-        $cost->email = $request->email;
-        $cost->phone = $request->phone;
-
+        $cost->name=$request->name;
+        $cost->email=$request->email;
+        $cost->phone=$request->phone;
+      
         $cost->save();
+        $result=array('status'=>true,'message'=>'product updated successfully','data'=>$cost);
+        return response()->json($result,200);
 
-        $result = array('status' => true, 'message' => "user updated successfully", 'data' => $cost);
-
-        // $responseCode = 200;
-
-        return response()->json($result, 200);
     }
 
 
 
-
-
-
-
-
-
-
-
-
-
-===========================================================================================================================================
-
-
-api route
-
-
+    public function deleteUser($id){
+            $cost=Custom::find($id);
+            if(!$cost){
+                return response()->json(['status'=>false,'message'=>"user not found" ],404);
+            }
+            $cost->delete();
+                $result=array('status'=>true,'message'=>'User has been deleleted successfully');
+                return response()->json($result,200);
+        
+        }
+    }
+=============================================================================================
+ crud routes 
 <?php
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\API\CostomController;
-
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\UserController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -187,19 +142,20 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
 |
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::post('user-create', [CostomController::class, 'createUser']);
-Route::get('get-users', [CostomController::class, 'getUsers']);
-Route::get('get-user-detail/{id}', [CostomController::class, 'getUserDetail']);
-Route::put('user-update/{id}', [CostomController::class, 'updateUser']);
-Route::delete('user-delete/{id}', [CostomController::class, 'deleteUser']);
+
+Route::post('create-user',[UserController::class,'createUser']);
+Route::get('get-user',[UserController::class,'getUser']);
+Route::get('get-user-detail/{id}',[UserController::class,'getUserDetail']);
+Route::put('update-user/{id}',[UserController::class,'updateUser']);
+Route::delete('delete-user/{id}',[UserController::class,'deleteUser']);
 
 
 
@@ -209,4 +165,10 @@ Route::delete('user-delete/{id}', [CostomController::class, 'deleteUser']);
 
 
 
+
+
+
+
+
+    
 
