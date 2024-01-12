@@ -1,6 +1,5 @@
-crud using laravel api
 
-
+laravel api controllers
 <?php
 
 namespace App\Http\Controllers\API;
@@ -9,6 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Custom;
 use Illuminate\Support\Facades\Validator;
+use Exception;
+use Auth;
 
 
 class UserController extends Controller
@@ -56,11 +57,28 @@ class UserController extends Controller
 
     // function to return all users
 
+    // public function getUser(){
+    //     $cost=Custom::get();
+    //     $result=array('status'=>true,'message'=>count($cost)." user fatched",'data'=>$cost);
+    // return response()->json($result,200);
+
+    // }
+
+    // try catch testing
+
     public function getUser(){
+        try{
+
+        
         $cost=Custom::get();
         $result=array('status'=>true,'message'=>count($cost)." user fatched",'data'=>$cost);
-    return response()->json($result,200);
-
+        $responseCode=200;      
+        return response()->json($result,$responseCode);
+}
+        catch(Exception $e){
+            $result=array('status'=>false, 'message'=>"API NOT WOKING",'error'=>$e->getMessage());
+            return response()->json($result,500);
+}
     }
 
 
@@ -116,7 +134,7 @@ class UserController extends Controller
 
 
 
-    public function deleteUser($id){
+        public function deleteUser($id){
             $cost=Custom::find($id);
             if(!$cost){
                 return response()->json(['status'=>false,'message'=>"user not found" ],404);
@@ -126,9 +144,64 @@ class UserController extends Controller
                 return response()->json($result,200);
         
         }
+
+        // api auth functions 
+
+        
+        
+        //login function
+        public function login(Request $request)
+        {
+            $validator= Validator::make($request->all(),[
+                'email'=>'required',
+                'password'=>'required'
+            ]);
+            if($validator->fails()){
+                $result = array('status' => false, 'message' => 'validation error occured', 'error_message' => $validator->errors());
+                return response()->json($result, 400); //bad request
+            }
+            $credint =$request->only('email','password');
+            if(Auth::attempt($credint)){
+                $cost = Auth::user();
+
+                // creating a token
+                $token=$cost->createToken('MyApp')->accessToken;
+
+            return response()->json(['status'=>true,'message'=>"login successfull","token"=>$token],200);
+
+            }
+            return response()->json(['status'=>false,'message'=>"invalid login details"],401);
+
+
+
+                
+
+            
+
+        }
+
+        public function unauthenticate(Request $request)
+        {
+            return response()->json(['status'=>true,'message'=>"only authorised user can access","error"=>"unauthenticate"],200);
+
+            }
+
+            // logout function
+            public function logout(){
+                $cost=Auth::user();
+                $cost->tokens->each(function($token,$key){
+                    $token->delete();
+                });
+
+                // $cost=Auth::guard('api')->user();
+                return response()->json(['status'=>true, 'message'=>'logged out successfully'],200);
+            }
+
     }
-=============================================================================================
- crud routes 
+
+=============================================================================================================================
+       
+laravel api  route
 <?php
 
 use Illuminate\Http\Request;
@@ -148,16 +221,27 @@ use App\Http\Controllers\API\UserController;
 */
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    return $request->user();    
 });
 
 Route::post('create-user',[UserController::class,'createUser']);
-Route::get('get-user',[UserController::class,'getUser']);
-Route::get('get-user-detail/{id}',[UserController::class,'getUserDetail']);
+// Route::get('get-user',[UserController::class,'getUser']);
+// Route::get('get-user-detail/{id}',[UserController::class,'getUserDetail']);
 Route::put('update-user/{id}',[UserController::class,'updateUser']);
 Route::delete('delete-user/{id}',[UserController::class,'deleteUser']);
 
 
+Route::post('login',[UserController::class,'login']);
+// unauthenticate route
+Route::get('unauthenticate',[UserController::class,'unauthenticate'])->name('unauthenticate');
+
+// secure routes within auth middleware
+
+Route::middleware('auth:api')->group(function(){
+Route::get('logout',[UserController::class,'logout']);
+Route::get('get-user',[UserController::class,'getUser']);
+Route::get('get-user-detail/{id}',[UserController::class,'getUserDetail']);
+});
 
 
 
