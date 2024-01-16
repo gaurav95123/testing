@@ -581,6 +581,49 @@ Route::get('get-user',[UserController::class,'getUser']);
 Route::get('get-user-detail/{id}',[UserController::class,'getUserDetail']);
 });
 
+==============================================================================================================================
+
+
+update data through id
+    Route::post('update-like','AuthenticationController@updatelikelist');   
+=================================================================================
+controller function
+
+ public function updatemusiclist(Request $request){
+        $this->is_validationRule(Validation::musicList($Validation="",$message=""),$request);
+        $user=Auth::guard()->user();
+        $user->music_list=implode(",",$request->music_list);
+        $user->save();
+        return $this->responseOk('Music-List updated',["user"=>$user]);
+    }
+======================================================================================
+
+validation define into validation.php file.
+  // music list validation
+    public static function musicList($validation=null,$message =null){
+      $validation=[
+        'music_list'=>'required|array',
+        'list_list.*'=>"integer"
+      ];
+      $message=[
+        'message.required'=>"please enter music list.",
+
+      ];
+      return $data=['validation'=>$validation,'message'=>$message];
+
+    }
+
+
+======================================================================================
+it is define into the model
+
+   public function getMusicListAttribute($value){
+        $ids = explode(",", $value ?? "");
+        $likes = Music::whereIn("id", $ids)->get();
+        return $likes;
+    }
+
+
 
 
 
