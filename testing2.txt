@@ -1,1 +1,90 @@
+  public function likeList(){ 
+        $like=Like::get(['id','name','image']);
+        $userLikeList = auth()->user()->getOriginal("like_list");
+        if($userLikeList){
+            $userLikeList = explode(",", $userLikeList);
+            $like = $like->map(function($each) use ($userLikeList){
+                if(in_array($each->id, $userLikeList)){
+                    $each->isSelected = true;
+                }else{
+                    $each->isSelected = false;
+                }
+                return $each;
+            });
+        }
+        return $this->responseOk('Like list fetched successfully.', ["like_list" => $like]);
+    }
 
+    // like music function
+
+    public function likeMusic(){ 
+        $like=Music::get(['id','name','image']);
+        $userLikeList = auth()->user()->getOriginal("music_list");
+        if($userLikeList){
+            $userLikeList = explode(",", $userLikeList);
+            $like = $like->map(function($each) use ($userLikeList){
+                if(in_array($each->id, $userLikeList)){
+                    $each->isSelected = true;
+                }else{
+                    $each->isSelected = false;
+                }
+                return $each;
+            });
+        }
+        return $this->responseOk('Music list fetched successfully.', ["music_list" => $like]);
+    }
+
+
+    // public function music(){
+    //     $music=Music::get(['id','name','image']);
+    //     return $this->responseOk('Music list fetched successfully.',["music_list"=>$music]);
+    // }
+
+    // like-list-updatecode
+
+    public function updatelikelist(Request $request){
+        
+        $this->is_validationRule(Validation::likeList($Validation = "", $message = "") , $request);
+        $user = Auth::guard()->user();
+        $user->like_list= implode(",",$request->like_list);
+        $user->save();
+
+        return $this->responseOk('Like-List updated',["user"=>$user]);
+    }
+    
+    // music-list-updatecode
+
+    public function updatemusiclist(Request $request){
+        $this->is_validationRule(Validation::musicList($Validation="",$message=""),$request);
+        $user=Auth::guard()->user();
+        $user->music_list=implode(",",$request->music_list);
+        $user->save();
+        return $this->responseOk('Music-List updated',["user"=>$user]);
+    }
+
+    public function uservanue(Request $request){
+ 
+
+            $validator= Validator::make($request->all(),[
+                'venue_id'=>'required',
+            
+            ]);
+            if($validator->fails()){
+                $result = array( 'message' => 'validation error occured', 'error_message' => $validator->errors());
+                return response()->json($result, 400); //bad request
+            }
+
+        $user=Auth::guard()->user()->id;
+        
+        $list= new UserVenueFavorites;
+        $list->user_id=$user;
+        $list->venue_id	=$request->venue_id;
+        $list->save();
+        return $this->responseOk('Data added successfully',["data"=>$list]);
+
+
+        
+        
+
+        
+    }
