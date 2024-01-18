@@ -624,6 +624,62 @@ it is define into the model
     }
 
 
+===================================================================================================
+public function listingvenue(){
+        $user = auth()->user()->id;
+        $favList = UserVenueFavorites::where("user_id", $user)->get();
+        $favList = $favList->map(function($each){
+            return $each->venue_id;
+        });
+        
+        $venues = Venu::whereIn("id", $favList)->get();
+        return $this->
+        responseOk("Venue Listing", ['venue_listing' => $venues]);
+    }
+
+
+
+
+    public function listingvenue(){
+        $user = auth()->user()->id;
+        $favList = UserVenueFavorites::where("user_id", $user)->get();
+        $favList = $favList->pluck("venue_id");
+        $venues = Venu::whereIn("id", $favList)->get();
+        return $this->responseOk("Venue Listing", ['venue_listing' => $venues]);
+    }
+
+
+    $user=Auth::guard()->user()->id;
+       $users=UserVenueFavorites::where('venue_id',$request->venue_id)->where('user_id',$user)->first();
+       if($users){
+        $users->delete();
+        return $this->responseOk('Venue removed from favorites successfully');
+       }
+
+
+
+
+
+    public function likeList(){ 
+        $like=Like::get(['id','name','image']);
+        $userLikeList = auth()->user()->getOriginal("like_list");
+        if($userLikeList){
+            $userLikeList = explode(",", $userLikeList);
+            $like = $like->map(function($each) use ($userLikeList){
+                if(in_array($each->id, $userLikeList)){
+                    $each->isSelected = true;
+                }else{
+                    $each->isSelected = false;
+                }
+                return $each;
+            });
+        }
+        return $this->responseOk('Like list fetched successfully.', ["like_list" => $like]);
+    }
+
+
+
+    
 
 
 
