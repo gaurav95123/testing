@@ -522,7 +522,44 @@ class UserController extends Controller
 
 
 
-// ============================================================================================================
+// ===========================================================================================================
+image fetch api::
+
+    // public function listUser(){
+    //     $user = auth()->user()->id;
+    //     $users=User::where('id','!=',$user)
+        
+    //     ->select(['id','first_name','last_name','email','mobile_number','dob','gender',
+    //     ])
+    //     ->paginate(10);
+    //     return $this->responseOk("users List",["user_data"=>$users]);
+
+    // }
+    
+    public function listUser() {
+        $user = auth()->user()->id;
+        
+        // $users = User::where('id', '!=', $user)paginate(10)->get([ 'id','first_name','last_name','image','mobile_number','dob','gender']);
+        $users=User::where('id','!=',$user)
+            ->select([
+                'id',
+                'first_name',
+                'last_name',
+                'email',
+                'mobile_number',
+                'dob',
+                'gender',
+               'image'
+            ])
+            ->paginate(20);
+    
+        return $this->responseOk("Users List", ["user_data" => $users]);
+    }
+route::
+     Route::get('list-user','AuthenticationController@listUser');
+
+    
+
 
 
 
