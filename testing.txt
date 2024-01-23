@@ -744,9 +744,34 @@ public function listUser(Request $request) {
         return $this->responseOk('Name not found.');
     }
 }
+
+
+
+
+
+    public function userlist(Request $request)
+    {
+        // $users = User::get();
+        $search = $request->search;
+        $users = User::where(function ($query) use ($search) {
+
+            $query->where('first_name', 'LIKE', '%' . $search . '%')
+                ->orwhere('last_name', 'LIKE', '%' . $search . '%')
+                ->orwhere('address', 'LIKE', '%' . $search . '%')
+                ->orwhere('phone', 'LIKE', '%' . $search . '%')
+                ->orwhere('designation', 'LIKE', '%' . $search . '%')
+
+                ->orwhere('email', 'LIKE', '%' . $search . '%');
+        })
+            ->get();
+
+        return response()->json(['status' => true, 'data' => $users]);
+    }
 api route
 
      Route::get('list-user','AuthenticationController@listUser');
+   Route::get('user-list-search', [UserController::class, 'userlist']);
+
 =======================================================================================================================
 
 
