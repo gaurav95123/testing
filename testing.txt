@@ -713,6 +713,40 @@ public function listingvenue(){
         }
         return $this->responseOk('Like list fetched successfully.', ["like_list" => $like]);
     }
+================================================================================================================
+================================laravel search api================================
+public function listUser(Request $request) {
+    $user = auth()->user()->id;
+    $search = $request->search;
+
+    $users = User::where('id', '!=', $user)
+        ->where(function ($query) use ($search) {
+            $query->where('first_name', 'LIKE', '%' . $search . '%')
+                ->orWhere('last_name', 'LIKE', '%' . $search . '%');
+        })
+        ->select([
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'mobile_number',
+            'dob',
+            'gender',
+            'image'
+        ])
+        ->paginate(10);
+
+    if ($users->count() > 0) {
+        return $this->responseOk("search", ["user_name_is" => $users]);
+    } else {
+        return $this->responseOk('Name not found.');
+    }
+}
+api route
+
+     Route::get('list-user','AuthenticationController@listUser');
+=======================================================================================================================
+
 
 
 
