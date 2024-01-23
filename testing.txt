@@ -720,7 +720,7 @@ public function listUser(Request $request) {
     $search = $request->search;
 
     $users = User::where('id', '!=', $user)
-        - ->where(function ($query) use ($search) {
+        ->where(function ($query) use ($search) {
             $query->where('first_name', 'LIKE', '%' . $search . '%')
                 ->orWhere('last_name', 'LIKE', '%' . $search . '%')
                 ->orWhere('email', 'LIKE', '%' . $search . '%');
