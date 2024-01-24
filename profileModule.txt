@@ -558,4 +558,44 @@ class ProfileModel extends Model
         }
     }
 }
+===================================================================================================================
+
+    public function listUser(Request $request) {
+    $user = auth()->user()->id;
+    // $userss=User::get(['id']);
+    // $list=AddFriend::get(['to_user_id',$userss]);  
+    // $lists = AddFriend::get(['from_user_id']); 
+    $list = AddFriend::where("from_user_id", $user)
+    ->orWhere("to_user_id",$user)
+    ->get();
+    $lists = $list->pluck("to_user_id");
+    $detail = $list->pluck("from_user_id");
+    $search = $request->search;
+    $users = User::where('id', '!=', $user)
+        ->whereNotIn('id', $lists)
+        ->whereNotIn('id',$detail)
+        ->where(function ($query) use ($search) {
+            $query->where('first_name', 'LIKE', '%' . $search . '%')
+                ->orWhere('last_name', 'LIKE', '%' . $search . '%')
+                ->orWhere('mobile_number', 'LIKE', '%' . $search . '%')
+                ->orWhere('email', 'LIKE', '%' . $search . '%');
+        })
+        ->select([
+            'id',           
+             'first_name',
+            'last_name',
+            'email',
+            'mobile_number',
+            'dob',
+            'gender',
+            'image'
+        ])
+        ->paginate(30);
+    if ($users->count() > 0) {
+        return $this->responseOk("Search", ["user_data" =>  $users]);
+    } else {
+        return $this->responseOk('Name not found.');
+    }
+}
+
 
