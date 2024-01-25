@@ -773,8 +773,55 @@ api route
    Route::get('user-list-search', [UserController::class, 'userlist']);
 
 =======================================================================================================================
+today code
+   public function addfriendd(Request $request){
+        $this->is_validationRule(Validation::adduserfriend($Validation="",$message=""),$request);  
+        $user = auth()->user()->id;
+        $query = AddFriend::query()
+        ->where('to_user_id', $request->to_user_id)
+        ->orWhere('from_user_id', $user)
+        ->first();
+        if($query){
+            return $this->responseOk('You are already in friend list');
+        }
+        else{
+            $list= new AddFriend();
+            $list->to_user_id=$request->to_user_id;
+            $list->from_user_id=$user;
+            $list->status='Pending';
+            $list->save();
+            return $this->responseOk('Friend added successfully',["data"=>$list]);     
+        }
+    }
+
+=============================================================================================================
+   public function friendlist(Request $request){
+            $user = auth()->user()->id;
+            $users = AddFriend::where('to_user_id',$user)->where('status',$request->type)->pluck('from_user_id');
+            
+            $list=User::whereIn('id',$users)
+            ->select(['id','first_name','last_name','image'])
+            ->paginate(10); 
+            return $this->responseOk('Friend_list',['friend'=>$list]);
+        }
+
+========================================================================================
 
 
+public function updatestatus(Request $request){ 
+        $this->is_validationRule(Validation::updateuserstatus($Validation="",$message=""),$request);  
+            $user = auth()->user()->id;
+            $list = AddFriend::where('from_user_id', $request->from_user_id)
+            ->where('to_user_id',$user)
+            ->first();
+            if(!$list){
+            return $this->responseOk('user not found');
+            }else{
+                $list->status=$request->status;
+                $list->save();            
+                return $this->responseOk('status updated successfully',['data'=>$list]);
+            }
+        }
 
 
     
