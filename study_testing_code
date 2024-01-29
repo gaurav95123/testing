@@ -1,0 +1,30 @@
+study code
+
+public function addfriendd(Request $request) {
+    $this->is_validationRule(Validation::adduserfriend($Validation="", $message=""), $request);  
+
+    $user = auth()->user()->id;
+    $toUserId = $request->to_user_id;
+
+    $querys = AddFriend::where(function($query) use ($user, $toUserId) {
+            $query->where('from_user_id', $user)
+                  ->where('to_user_id', $toUserId);
+        })
+        ->orWhere(function($query) use ($user, $toUserId) {
+            $query->where('from_user_id', $toUserId)
+                  ->where('to_user_id', $user);
+        })
+        ->first();
+
+    if($querys) {
+        return $this->responseOk('You are already in friend list');
+    } else {
+       $list = new AddFriend();
+       $list->to_user_id = $toUserId;
+       $list->from_user_id = $user;
+       $list->status = 'Pending';
+       $list->save();
+
+        return $this->responseOk('Friend request sent successfully', ["data" =>$list]);     
+    }
+}
