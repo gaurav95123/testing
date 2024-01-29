@@ -1,12 +1,12 @@
-study code
+===================================================study code============================================================
 
-public function addfriendd(Request $request) {
+public function addfriend(Request $request) {
     $this->is_validationRule(Validation::adduserfriend($Validation="", $message=""), $request);  
 
     $user = auth()->user()->id;
     $toUserId = $request->to_user_id;
 
-    $querys = AddFriend::where(function($query) use ($user, $toUserId) {
+    $existingFriendship = AddFriend::where(function($query) use ($user, $toUserId) {
             $query->where('from_user_id', $user)
                   ->where('to_user_id', $toUserId);
         })
@@ -16,8 +16,8 @@ public function addfriendd(Request $request) {
         })
         ->first();
 
-    if($querys) {
-        return $this->responseOk('You are already in friend list');
+    if($existingFriendship) {
+        return $this->responseOk('You are already in Friend');
     } else {
        $list = new AddFriend();
        $list->to_user_id = $toUserId;
@@ -25,10 +25,10 @@ public function addfriendd(Request $request) {
        $list->status = 'Pending';
        $list->save();
 
-        return $this->responseOk('Friend request sent successfully', ["data" =>$list]);     
+        return $this->responseOk('Friend request sent', ["data" =>$list]);     
     }
 }
 
 route code
      Route::post('add-friendd','AuthenticationController@addfriendd');
-
+=========================================================================================================================
