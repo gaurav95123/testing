@@ -203,6 +203,37 @@ route code
      Route::get('like-list','AuthenticationController@likeList');
 =======================================================================================================
 
+    public function updatestatus(Request $request){ 
+            $this->is_validationRule(Validation::updateuserstatus($Validation="",$message=""),$request);  
+                $user = auth()->user()->id;
+                $list = AddFriend::where('from_user_id', $request->from_user_id)
+                ->where('to_user_id',$user)
+                ->first();
+                if(!$list){
+                return $this->responseOk('user not found');
+                }else{
+                    $list->status=$request->status;
+
+                    if($list->status=='Rejected'){
+                        $list->delete();
+                        return $this->responseOk('Your request is Rejected !');
+                    }
+                    else{
+                        $list->save();            
+                    }
+                    return $this->responseOk('status updated successfully',['data'=>$list]);
+                }
+            }
+
+
+route code
+     Route::post('update-status','AuthenticationController@updatestatus');
+
+==========================================================================================================================
+
+
+
+
 
 
 
