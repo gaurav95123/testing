@@ -1,23 +1,27 @@
 ===================================================study code============================================================
 
-public function addfriend(Request $request) {
-    $this->is_validationRule(Validation::adduserfriend($Validation="", $message=""), $request);  
+  public function addfriend(Request $request) {
+        $this->is_validationRule(Validation::adduserfriend($Validation="", $message=""), $request);  
 
-    $user = auth()->user()->id;
-    $toUserId = $request->to_user_id;
+        $user = auth()->user()->id;
+        $toUserId = $request->to_user_id;
 
-    $existingFriendship = AddFriend::where(function($query) use ($user, $toUserId) {
-            $query->where('from_user_id', $user)
-                  ->where('to_user_id', $toUserId);
-        })
-        ->orWhere(function($query) use ($user, $toUserId) {
-            $query->where('from_user_id', $toUserId)
-                  ->where('to_user_id', $user);
-        })
-        ->first();
-
+        $existingFriendship = AddFriend::where(function($query) use ($user, $toUserId) {
+                $query->where('from_user_id', $user)
+                    ->where('to_user_id', $toUserId);
+            })
+            ->orWhere(function($query) use ($user, $toUserId) {
+                $query->where('from_user_id', $toUserId)
+                    ->where('to_user_id', $user);
+            })
+            ->first();
     if($existingFriendship) {
-        return $this->responseOk('You are already in Friend');
+        if($existingFriendship->to_user_id==$user){
+            return $this->responseOk('User has already sent you a friend request.');
+        }else{
+            return $this->responseOk('Friend request already sent to user.');
+        }
+
     } else {
        $list = new AddFriend();
        $list->to_user_id = $toUserId;
@@ -26,11 +30,12 @@ public function addfriend(Request $request) {
        $list->save();
 
         return $this->responseOk('Friend request sent', ["data" =>$list]);     
+     }
+     
     }
-}
 
 route code
-     Route::post('add-friendd','AuthenticationController@addfriendd');
+       Route::post('add-friend','AuthenticationController@addfriend');
 =========================================================================================================================
 
 
