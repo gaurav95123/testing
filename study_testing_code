@@ -32,3 +32,179 @@ public function addfriend(Request $request) {
 route code
      Route::post('add-friendd','AuthenticationController@addfriendd');
 =========================================================================================================================
+
+
+  public function friendlist(Request $request){
+            $user = auth()->user()->id;
+            $users = AddFriend::where('to_user_id',$user)->where('status',$request->type)->pluck('from_user_id');
+            
+            $list=User::whereIn('id',$users)
+            ->select(['id','first_name','last_name','image'])
+            ->paginate(10); 
+            return $this->responseOk('Friend_list',['friend'=>$list]);
+        }
+route code
+     Route::post('friend-list','AuthenticationController@friendlist');
+=========================================================================================================================
+
+
+ public function listUser(Request $request) {
+    $user = auth()->user()->id;
+    // $userss=User::get(['id']);
+    // $list=AddFriend::get(['to_user_id',$userss]);  
+    // $lists = AddFriend::get(['from_user_id']); 
+    $list = AddFriend::where("from_user_id", $user)
+    ->orWhere("to_user_id",$user)
+    ->get();
+    $lists = $list->pluck("to_user_id");
+    $detail = $list->pluck("from_user_id");
+    $search = $request->search;
+    $users = User::where('id', '!=', $user)
+        ->whereNotIn('id', $lists)
+        ->whereNotIn('id',$detail)
+        ->where(function ($query) use ($search) {
+            $query->where('first_name', 'LIKE', '%' . $search . '%')
+                ->orWhere('last_name', 'LIKE', '%' . $search . '%')
+                ->orWhere('mobile_number', 'LIKE', '%' . $search . '%')
+                ->orWhere('email', 'LIKE', '%' . $search . '%');
+        })
+        ->select([
+            'id',           
+             'first_name',
+            'last_name',
+            'email',
+            'mobile_number',
+            'dob',
+            'gender',
+            'image'
+        ])
+        ->paginate(30);
+        return $this->responseOk("Search", ["user_data" =>  $users]);
+    }
+route code
+     Route::get('list-user','AuthenticationController@listUser');
+
+====================================================================================================================
+
+public function favVenueList(){
+        $user = auth()->user()->id;
+        $favList = UserVenueFavorites::where("user_id", $user)->get();
+        $favList = $favList->map(function($each){
+            return $each->venue_id;
+        })->reverse();
+        $direction = 'asc';
+        if(!empty($favList->toArray())){
+            $venues = Venu::whereIn("id", $favList)
+            ->orderByRaw("FIELD(id, " . implode(",", $favList->toArray()) . ") $direction")
+            ->get();
+        }else{
+            $venues = [];
+        }
+        return $this->responseOk("Venue Listing", ['venue_listing' => $venues]);
+    }
+route code
+     Route::get('fav-venue-list','AuthenticationController@favVenueList');
+
+====================================================================================================================
+
+    public function uservanue(Request $request){
+
+            $validator= Validator::make($request->all(),[
+                'venue_id'=>'required',
+
+            ]);
+            if($validator->fails()){
+                $result = array( 'message' => 'validation error occured', 'error_message' => $validator->errors());
+                return response()->json($result, 400); //bad request
+            }
+
+        $user=Auth::guard()->user()->id;
+       $users=UserVenueFavorites::where('venue_id',$request->venue_id)->where('user_id',$user)->first();
+       if($users){
+        $users->delete();
+        return $this->responseOk('Venue removed from favorites successfully');
+       }
+        $list= new UserVenueFavorites;
+        $list->user_id=$user;
+        $list->venue_id	=$request->venue_id;
+        $list->save();
+        return $this->responseOk('Venue added to favorites successfully',["data"=>$list]);
+
+    }
+
+route code
+     Route::post('user-venue','AuthenticationController@uservanue');
+
+============================================================================================================================
+  public function updatemusiclist(Request $request){
+        $this->is_validationRule(Validation::musicList($Validation="",$message=""),$request);
+        $user=Auth::guard()->user();
+        $user->music_list=implode(",",$request->music_list);
+        $user->save();
+        return $this->responseOk('Music-List updated',["user"=>$user]);
+    }
+
+route code
+    Route::post('update-music','AuthenticationController@updatemusiclist');
+=============================================================================================================================
+
+    public function updatelikelist(Request $request){
+
+        $this->is_validationRule(Validation::likeList($Validation = "", $message = "") , $request);
+        $user = Auth::guard()->user();
+        $user->like_list= implode(",",$request->like_list);
+        $user->save();
+
+        return $this->responseOk('Like-List updated',["user"=>$user]);
+    }
+route code
+    Route::post('update-like','AuthenticationController@updatelikelist');   
+====================================================================================================================
+
+public function likeMusic(){
+        $like=Music::get(['id','name','image']);
+        $userLikeList = auth()->user()->getOriginal("music_list");
+        if($userLikeList){
+            $userLikeList = explode(",", $userLikeList);
+            $like = $like->map(function($each) use ($userLikeList){
+
+                if(in_array($each->id, $userLikeList)){
+                    $each->isSelected = true;
+                }else{
+                    $each->isSelected = false;
+                }
+                return $each;
+            });
+        }
+        return $this->responseOk('Music list fetched successfully.', ["music_list" => $like]);
+    }
+route code
+     Route::get('music-list','AuthenticationController@likeMusic');
+
+==============================================================================================================
+ public function likeList(){
+        $like=Like::get(['id','name','image']);
+        $userLikeList = auth()->user()->getOriginal("like_list");
+        if($userLikeList){
+            $userLikeList = explode(",", $userLikeList);
+            $like = $like->map(function($each) use ($userLikeList){
+                if(in_array($each->id, $userLikeList)){
+                    $each->isSelected = true;
+                }else{
+                    $each->isSelected = false;
+                }
+                return $each;
+            });
+        }
+        return $this->responseOk('Like list fetched successfully.', ["like_list" => $like]);
+    }
+route code
+
+     Route::get('like-list','AuthenticationController@likeList');
+=======================================================================================================
+
+
+
+
+
+
