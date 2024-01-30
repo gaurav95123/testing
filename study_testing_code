@@ -238,6 +238,47 @@ route code
 
 
 
+public function friendlist(Request $request){
+            $user = auth()->user()->id;
+                
+                if($request->input('type') == "Pending"){
+                
+                    $users = AddFriend::where(function($query) use ($user, $request) {
+                        $query->where('to_user_id', $user)
+                              ->where('status', $request->input('type'));
+                    })->get();
+                }else{
+                    $users = AddFriend::where(function($query) use ($user, $request) {
+                        $query->where('to_user_id', $user)
+                              ->where('status', $request->input('type'));
+                    })
+                    ->orWhere(function($query) use ($user,$request) {
+                        $query->where('from_user_id', $user)
+                              ->where('status',$request->input('type'));
+                    })                 
+                    ->get();
+    
+                }
+                
+            // merge both id's on array
+            $userid=[];
+            foreach($users as $userss){
+                $userid[]=$userss->to_user_id;
+                $userid[]=$userss->from_user_id;
+            }
+    
+            $list=User::where('id', '!=', $user)    
+            ->whereIn('id',$userid)
+                ->select(['id','first_name','last_name','image'])
+                ->paginate(10); 
+            return $this->responseOk('Friend List.',['friend'=>$list]);
+        }
+
+route code
+Route::post('friend-list','AuthenticationController@friendlist');
+
+
+
 
 
 
