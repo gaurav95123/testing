@@ -282,6 +282,145 @@ Route::post('friend-list','AuthenticationController@friendlist');
 
 
 
+===========================================================================================================================
+node js.
+
+
+const experss=require("express")
+const con=require("./config")
+const app=experss() // app instance of experss
+
+// send data to json format using postman dynamic data
+app.use(experss.json());
+
+// get api
+app.get("/",(req,res)=>{
+    // res.send(" <h1>this is home page.<h1>")
+   con.query("select * from users",(error,result)=>{
+    if(result){
+        res.send(result);
+
+    }
+    else{
+        res.send(error);
+    }
+   })
+})
+
+//post api
+// send to static data use this
+app.post("/",(req,res)=>{
+
+        const data={
+            first_name:"amit",
+            last_name:"bisht",
+            email:"amit@gmail.com",
+        }
+    
+        con.query('Insert INTO users SET ?',data,(error,result,fields)=>{
+            if(error) throw error;
+            res.send(result)
+        })
+    
+    })
+
+// send data from postman dynamic data
+app.post("/",(req,res)=>{
+
+    const data= req.body
+    con.query('Insert INTO users SET ?',data,(error,result,fields)=>{
+        if(error) throw error;
+        res.send(result)
+    })
+
+})
+
+
+// update api
+//  dynamic update
+app.put('/:id',(req,res)=>{
+
+    const data=[req.body.first_name,req.body.last_name,req.body.email,req.params.id];
+    con.query("UPDATE users SET first_name=?,last_name=?,email=? where id=?" ,data,(error,result,fields)=>{
+        if(error) throw error;
+        res.send(result)
+
+    })
+    // res.send("update data is working")
+})
+
+
+// static update
+app.put('/',(req,res)=>{
+
+    const data=["toney","bisht","toney@gmail.com",14];
+    con.query("UPDATE users SET first_name=?,last_name=?,email=? where id=?" ,data,(error,result,fields)=>{
+        if(error) throw error;
+        res.send(result)
+
+    })
+
+    // res.send("update data is working")
+})
+
+
+// delete user dynamic
+app.delete("/:id",(req,res)=>{
+    con.query("DELETE FROM users WHERE id=" +req.params.id,(error,result,fields)=>{
+        if(error) throw error;
+        res.send(result)    
+    }  
+    );
+    // res.send("user delete successfully")
+})
+
+// server 
+app.listen('5000', console.log("server is running,"))
+
+========================
+server code
+const mysql = require("mysql2");
+
+const con = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "redhat",
+  database: "testing",
+
+});
+
+// con.connect((error) => {
+//   if (error) {
+//     console.log("error", error);
+//   } else {
+//     console.log("connected");
+//   }
+// });
+
+module.exports=con;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
 
 
 
