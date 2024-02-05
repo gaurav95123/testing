@@ -1,4 +1,7 @@
-  public function likeList(){ 
+
+ Integrity constraint violation: 1052 Column 'id' in where clause is ambiguous 
+===============================================
+public function likeList(){ 
         $like=Like::get(['id','name','image']);
         $userLikeList = auth()->user()->getOriginal("like_list");
         if($userLikeList){
