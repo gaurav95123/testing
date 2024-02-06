@@ -1,5 +1,6 @@
 ===================================================study code============================================================
 
+
   public function addfriend(Request $request) {
         $this->is_validationRule(Validation::adduserfriend($Validation="", $message=""), $request);  
 
@@ -409,9 +410,180 @@ const con = mysql.createConnection({
 // });
 
 module.exports=con;
+======================================================================================================================
+
+public function groups(Request $request)
+    {
+        $data = [];
+        $msg = self::$message;
+
+        $rules = [
+            'group_id' => 'required|exists:groups,group_id,deleted_at,NULL',
+            'skip' => 'required',
+            'limit' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return response()->json(['data' => $data, 'code' => 400, 'success' => false, 'msg' => $validator->errors()->first()]);
+        }
+
+        $sasToken = SasToken::where('id', 1)->first();
+        $sas_token = $sasToken->sas_token;
+        $storage_url = env('AZURE_STORAGE_URL');
+        $azur_storage_url = env('AZURE_STORAGE_CONTAINER');
+        $user_url = $storage_url . $azur_storage_url . '/' . config('img.user.orignal_image') . '/';
+        $chat_Img_path = $storage_url . $azur_storage_url . '/' .  env('CHAT_IMAGE_PATH');
+        // $experience_image = $storage_url . $azur_storage_url . '/' . config('img.experience.orignal_image') . '/';
+        $noImage = asset('images/No_Image.png');
+
+        $select = [
+            "a.id",
+            "a.creator_id",
+            DB::raw("IF(a.image_name = null,'$noImage',CONCAT('$chat_Img_path',a.image_name,'?','$sas_token')) AS image"),
+            "c.first_name as c_first_name",
+            "c.last_name as c_last_name",
+            DB::raw("IF(c.profile_photo = null,'$noImage',CONCAT('$user_url',c.profile_photo,'?','$sas_token')) AS c_profile_photo"),
+            "a.message",
+            "a.height",
+            "a.width",
+            "a.type",
+            "a.reactions",
+            'a.created_at AS cdate',
+            "a.reply_id",
+            // DB::raw("DATE_FORMAT(a.created_at,'%Y-%m-%d %H:%i %p') AS created_date_and_time"),
+            'a.created_at AS created_date_and_time',
+            'c.socket_id AS c_socket_id',
+            // DB::raw("DATE_FORMAT(a.updated_at,'%Y-%m-%d %H:%i %p') AS updated_at"),
+            // DB::raw("DATE_FORMAT(a.created_at,'%h:%i %p') AS cdate"),
+            DB::raw("DATE_FORMAT(a.created_at,'%Y-%m-%d') AS created_at"),
+            DB::raw("DATE_FORMAT(a.updated_at,'%Y-%m-%d') AS updated_at"),
+            DB::raw("a.created_at AS full_created_at"),
+        ];
+        $query = DB::table('messages AS a')
+        ->select($select)
+        ->join("message_recipients as b","a.id","=","b.message_id")
+        // ->join("group_users as g","g.group_user_id","=","b.recipient_group_id")
+        ->join("users as c","a.creator_id","=","c.id")
+        ->where("b.group_id",$request->group_id)
+        ->orderBy("a.created_at",'DESC');
+
+        $count = $query->count();
+        $groups = $query->skip($request->skip)->limit($request->limit)->get();
+        $mentions = DB::table('user_mentions')->select('user_mentions.id', 'user_mentions.user_id', 'user_mentions.index', 'user_mentions.username', 'user_mentions.length', 'user_mentions.type_id','users.username as new_username')->join('users', 'users.id', 'user_mentions.user_id')->where("user_mentions.type","group_message")->whereIn('user_mentions.type_id', $groups->pluck('id'))->get();
+        // dd($mentions);
+
+        $groups = $groups->map(function($eachMessage) use ($mentions,$noImage,$chat_Img_path,$user_url,$sas_token){
+            $eachMessage->mentions = $mentions->where('type_id', $eachMessage->id)->values();
+            $eachMessage->reactions = json_decode($eachMessage->reactions) ?? [];
+            if($eachMessage->reply_id){
+                $select = [
+                    "a.id",
+                    "a.creator_id",
+                    DB::raw("IF(a.image_name = null,'$noImage',CONCAT('$chat_Img_path',a.image_name,'?','$sas_token')) AS image"),
+                    "c.first_name as c_first_name",
+                    "c.last_name as c_last_name",
+                    DB::raw("IF(c.profile_photo = null,'$noImage',CONCAT('$user_url',c.profile_photo,'?','$sas_token')) AS c_profile_photo"),
+                    "a.message",
+                    "a.height",
+                    "a.width",
+                    "a.type",
+                    "a.reactions",
+                    'a.created_at AS cdate',
+                    'b.group_id',
+                    // DB::raw("DATE_FORMAT(a.created_at,'%Y-%m-%d %H:%i %p') AS created_date_and_time"),
+                    'a.created_at AS created_date_and_time',
+                    'c.socket_id AS c_socket_id',
+                    // DB::raw("DATE_FORMAT(a.updated_at,'%Y-%m-%d %H:%i %p') AS updated_at"),
+                    // DB::raw("DATE_FORMAT(a.created_at,'%h:%i %p') AS cdate"),
+                    DB::raw("DATE_FORMAT(a.created_at,'%Y-%m-%d') AS created_at"),
+                    DB::raw("DATE_FORMAT(a.updated_at,'%Y-%m-%d') AS updated_at"),
+                    DB::raw("a.created_at AS full_created_at"),
+                ];
+                $query = DB::table('messages AS a')
+                ->select($select)
+                ->join("message_recipients as b","a.id","=","b.message_id")
+                
+                // ->join("group_users as g","g.group_user_id","=","b.recipient_group_id")
+                ->join("users as c","a.creator_id","=","c.id")
+                ->where("a.reply_id",$eachMessage->reply_id)
+                ->orderBy("a.created_at",'DESC')
+                ->first();
+        
+                $eachMessage->reply = $query;
+                // dd($query);
+               
+            }
+            
+            return $eachMessage;
+        });
+
+        if($count > 0){
+            if ($count > (int)($request->limit) + (int)($request->skip)) {
+                $count = (int)($count) - ((int)($request->limit) + (int)($request->skip));
+            } else {
+                $count = 0;
+            }
+
+            $groups = $this->setResponse($groups, $request);
+        }
+
+        return response()->json(['data' => $groups, 'code' => 200, 'success' => true, 'msg' => $msg, 'count' => $count]);
 
 
+    }
 
+==================================================================================================================
+socket.on("sendMessageToGroup", async(data) => {
+        try {
+            var messageId = await query.addGroupMessage(data.user_id, data.group_id, data.message, null, data.height, data.width, data.type,data.reply_id);
+            if (data.mentions && data.mentions.length > 0) {
+                var mentionId = await query.addMention(data.mentions, "group_message", messageId, data.recipient_group_id)
+            }
+            var messageData = await query.getCurrentMsg(messageId,null, "group_message", data.utc_offset);
+
+            if(messageData.messages[0].reply_id){
+                messageData.messages[0].reply = await query.getCurrentMsg(messageData.messages[0].reply_id, data.utc_offset);
+                if(messageData.messages[0].reply){
+                    messageData.messages[0].reply = messageData.messages[0]?.reply?.messages?.[0]
+                }
+            }
+
+            var evt = "sendMessageToGroup_" + data.group_id;
+
+            io.emit(evt, messageData);
+
+            https.get(`${laravelAPI}/send/message/notification?schema_id=${data.group_id}&user_id=${data.user_id}&noti_message=${data.message}&type=group${data.type == "GIF" ? "&isFile=2" : ""}`, ()=>console.log("Done"))
+            data.mentions.forEach(eachMention => {
+                https.get(`${laravelAPI}/send/message/notification?schema_id=${data.group_id}&user_id=${data.user_id}&noti_message=${data.message}&type=group_mention&mentioned_user_id=${eachMention.user_id}`, ()=>console.log("Done"))
+            });
+        } catch (e) {
+            console.log(e);
+        }
+
+    });
+=====================================================================================================================
+const addGroupMessage = async function(userId, groupId, message, image, height, width, type = "normal",reply_id) {
+    const messageId = await addMessage(userId, message, image, height, width, type,reply_id);
+    const groupUserId = await getGroupMemberId(userId, groupId);
+
+    await db.query(
+        connection,
+        "INSERT INTO koiino.message_recipients (recipient_group_id,group_id,message_id,created_at,updated_at) VALUES ('" +
+        groupUserId +
+        "','" +
+        groupId +
+        "','" +
+        messageId +
+        "','" +
+        moment().format("YYYY-MM-DD HH:mm:ss") +
+        "','" +
+        moment().format("YYYY-MM-DD HH:mm:ss") +
+        "')"
+    );
+
+    return messageId;
+};
 
 
 
