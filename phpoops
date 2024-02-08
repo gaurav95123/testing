@@ -1,0 +1,126 @@
+<?php
+// echo "hello world";
+// class and object example
+
+// class fruit
+// {
+//     public $name;
+
+//     function set_name($name)
+//     {
+//         $this->name = $name;
+//     }
+//     function get_name()
+//     {
+//         return $this->name;
+//     }
+// }
+// $obj1 = new fruit();
+// $obj2 = new fruit();
+// $obj1->set_name('apple');
+// $obj2->set_name('banana');
+// echo $obj1->get_name();
+// echo "</br>";
+// echo $obj2->get_name();
+
+
+
+// constructor example
+// class fruit
+// {
+//     public $name;
+
+//     function __construct($name)
+//     {
+//         $this->name = $name;
+//     }
+
+//     function get_name()
+//     {
+//         return $this->name;
+//     }
+// }
+
+// $obj = new fruit('apple');
+// echo $obj->get_name();
+
+
+// destruct example
+
+// class fruit
+// {
+
+//     public $name;
+//     public $color;
+//     function __construct($name, $color)
+//     {
+//         $this->name = $name;
+//         $this->color = $color;
+//     }
+
+//     function __destruct()
+//     {
+//         echo "the fruit is  <h5>{$this->name}</h5> and the color is   <h5>{$this->color}</h5>";
+//     }
+// }
+
+// $obj = new fruit('apple', "red");
+
+
+
+
+// access modifier 
+
+// class fruit
+// {
+//     public $name;
+//     public $color;
+//     public $price;
+
+//     public  function set_name($name)
+//     {
+//         return $this->name = $name;
+//     }
+//     protected function set_color($color)
+//     {
+//         return $this->color = $color;
+//     }
+//     private function set_price($price)
+//     {
+//         return $this->price = $price;
+//     }
+// }
+
+// $obj1 = new fruit();
+// $obj1->set_name('apple');
+// $obj1->set_color('red');
+// $obj1->set_price(1000);
+
+// inheritance 
+
+
+class fruit
+{
+    public $name;
+    public $color;
+    public function __construct($name, $color)
+    {
+        $this->name = $name;
+        $this->color = $color;
+    }
+    protected function intero()
+    {
+        echo "this is a fruit  $this->name";
+    }
+}
+class fruits extends fruit
+{
+    public function name()
+    {
+        echo "Am I a fruit or a berry? ";
+    }
+}
+
+$fruitss = new fruits('apple', 'red');
+// $fruitss->intero();
+$fruitss->name();
