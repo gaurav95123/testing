@@ -1,3 +1,4 @@
+
 <?php
 // echo "hello world";
 // class and object example
@@ -99,28 +100,183 @@
 // inheritance 
 
 
-class fruit
-{
-    public $name;
-    public $color;
-    public function __construct($name, $color)
-    {
-        $this->name = $name;
-        $this->color = $color;
-    }
-    protected function intero()
-    {
-        echo "this is a fruit  $this->name";
-    }
-}
-class fruits extends fruit
-{
-    public function name()
-    {
-        echo "Am I a fruit or a berry? ";
-    }
-}
+// class fruit
+// {
+//     public $name;
+//     public $color;
+//     public function __construct($name, $color)
+//     {
+//         $this->name = $name;
+//         $this->color = $color;
+//     }
+//     protected function intero()
+//     {
+//         echo "this is a fruit  $this->name";
+//     }
+// }
+// class fruits extends fruit
+// {
+//     public function name()
+//     {
+//         echo "Am I a fruit or a berry? ";
+//     }
+// }
 
-$fruitss = new fruits('apple', 'red');
-// $fruitss->intero();
-$fruitss->name();
+// $fruitss = new fruits('apple', 'red');
+// // $fruitss->intero();
+// $fruitss->name();
+
+
+//constants
+
+// class goodbye{
+//     const MESSAGE="Thanks for visits!";
+//     public function bye_bye(){
+//         echo self::MESSAGE;
+//     }
+// }
+
+// $obj= new goodbye;
+// $obj->bye_bye();
+
+// abstract class
+
+// abstract class Car{
+//     public function noOfWheels(){
+//         echo 'Wheels:4';
+//     }
+//     abstract  public function price($price);
+    
+// }
+// // this is sub_class
+// class BMW extends Car{
+//     public function price($price){
+//         echo 'Price:'.$price;
+//     }
+
+// }
+
+// $bmw=new BMW();
+// $bmw->noOfWheels();
+// echo "</br>";
+// $bmw->price('100');
+
+
+// abstract class example
+
+// abstract class Car{
+//     public function wheels(){
+//         echo "wheels:4";
+//     }
+
+//     abstract protected function price($price);
+
+// }
+
+// class BMW extends Car{
+//     public function price($price){
+//         echo 'Price:'.$price;
+//     }
+// }
+
+// $obj=new BMW();
+// $obj->wheels();
+// echo "</br>";
+// $obj->price('1000000');
+
+
+// interface example
+
+// interface CarInterface{
+//     public function startEngine();
+//     public function stopEngine();
+// }
+
+// // implements the interface
+// class BMW implements CarInterface{
+
+//     public function startEngine(){
+//         echo "BMW start  </br>";
+//     }
+
+//     public function stopEngine(){
+//         echo "BMW stop";
+//     }
+
+// }
+
+// class Oddi implements CarInterface{
+//     public function startEngine(){
+//         echo "ODDI start </br>";
+//     }
+
+//     public function stopEngine(){
+//         echo "ODDI stop ";
+//     }
+// }
+
+
+// function driveCar(CarInterface $car){
+//     $car->startEngine();
+//     $car->stopEngine();
+
+// }
+
+// $bmw=new BMW;
+// $oddi=new Oddi;
+
+// driveCar($bmw);
+// echo "</br>";
+// driveCar($oddi);
+
+// $oddi->startEngine();
+// $oddi->stopEngine();
+
+
+
+// static method
+
+// class greeting{
+//     public static function welcome(){
+//         echo "hello you are welcome";
+//     }
+
+//     public static function xyz(){
+//         self::welcome();
+//     }
+
+
+// }
+
+// greeting::xyz();
+// $obj=new greeting();
+// $obj->xyz();
+
+
+
+// static variable
+
+// class code{
+//     public static $name="my code";
+
+// }
+
+// echo  code::$name;
+
+// static varible pass through function
+
+class pi{
+public static $value=3.1414;
+public static function staticValue(){
+return  self::$value;
+}
+}
+$obj=new pi();
+echo $obj->staticValue();
+
+
+
+
+
+
+
