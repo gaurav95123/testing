@@ -1,0 +1,59 @@
+
+const express = require("express");
+const con=require("./config")
+const http = require("http");
+const { Server } = require("socket.io");
+const app = express();
+app.use(express.json())
+const server = http.createServer(app);
+const io = new Server(server);
+
+// socket.io start
+io.on("connection", (socket) => {
+    console.log("user connected");
+
+    socket.on("chat_message", (msg) => {
+        io.emit("chat_message", msg);
+   
+// convert object value
+
+const data = Object.values(msg);
+
+// const data = msg;
+con.query('Insert INTO messages SET message = ?',[data], (error) => {
+  if(error){
+    console.log(" this is an error", error )
+  }
+  console.log("message insert into database");
+})
+
+});
+
+    socket.on("disconnect", () => {
+        console.log("user disconnected");
+    });
+});
+
+
+// app.post("/chat", (req, res) => {
+//     const data = [req.body.message]
+//     con.query('Insert INTO  messages SET  message=?',data,(error,result,fields)=>{
+//         if(error) throw error;
+//         res.send(result)
+//     })
+
+
+// app.post("/chat", (req, res) => {
+
+//     const data = [req.body.message]
+// con.query('Insert INTO messages SET  message= ?',data,(error,results,fields)=>{
+//   if(error) throw error
+//   console.log("message insert into database")
+//   io.emit("chat_message", data);
+//   res.send(results)
+
+// })
+// });
+
+
+server.listen(3001, () => console.log("server started at port 3001"));
