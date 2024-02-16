@@ -1,3 +1,150 @@
+
+
+// backup code
+const express = require("express");
+const con = require("./config");
+const http = require("http");
+const { Server } = require("socket.io");
+const app = express();
+app.use(express.json());
+const server = http.createServer(app);
+const io = new Server(server);
+
+
+// socket.io start
+io.on("connection", (socket) => {
+    const headers = socket.request.headers;
+    const user_id = headers["user_id"];
+    //  var user_id=socket.request.user_id;
+    console.log("user connected:", user_id);
+    con.query(
+        "UPDATE users SET socket_id=? WHERE id=?",
+        [socket.id, user_id],
+        (error) => {
+            if (error) {
+                console.log("error", error);
+            } else {
+                console.log("id inserted into database");
+            }
+        }
+    ); 
+    socket.on("chat_message", (msg) => {
+        // message query
+
+        con.query(
+            "INSERT INTO messages SET message = ?,from_user_id=?,to_user_id=?",
+            [msg.message, msg.from_user_id, msg.to_user_id],
+            (error) => {
+                if (error) {
+                    console.log(
+                        "Error ",
+                        error
+                    );
+                } else {
+                    console.log("Message inserted into database");
+                }
+            }
+        );
+        // ===========
+        con.query(
+          "SELECT socket_id FROM users WHERE id = ?", 
+          [msg.to_user_id], 
+          (error, results, fields) => {
+            if (error) throw error;
+            console.log("this is socket_id",results);
+            io.to(results[0].socket_id).emit("chat_message", msg);
+          }
+          );
+        }); 
+        
+
+    // When a client disconnects
+    socket.on("disconnect", () => {
+        console.log("user disconnected");
+    });
+  });
+server.listen(3001, () => console.log("server started at port 3001"));
+
+
+
+
+=============================================================================================================
+const mysql = require("mysql2/promise");
+
+const pool = mysql.createPool({
+    host: "localhost",
+    user: "root",
+    password: "redhat",
+    database: "society_19_january",
+});
+
+// Testing the connection
+pool.getConnection()
+    .then(connection => {
+        console.log("Connected to MySQL database");
+        connection.release(); // Release the connection back to the pool
+    })
+    .catch(error => {
+        console.error("Error connecting to MySQL database:", error.message);
+    });
+
+
+module.exports = pool;
+
+==========================================================================
+const express = require("express");
+const con = require("./config");
+const http = require("http");
+const { Server } = require("socket.io");
+const app = express();
+app.use(express.json());
+const server = http.createServer(app);
+const io = new Server(server);
+
+// socket.io start
+io.on("connection", async (socket) => {
+    const headers = socket.request.headers;
+    const user_id = headers["user_id"];
+    //  var user_id=socket.request.user_id;
+    console.log("user connected:", user_id);
+    try {
+        await con.query("UPDATE users SET socket_id=? WHERE id=?", [
+            socket.id,
+            user_id,
+        ]);
+        console.log("id inserted into database");
+
+        socket.on("chat_message", async (msg) => {
+            // message query
+            try {
+                await con.query(
+                    "INSERT INTO messages SET message = ?, from_user_id = ?, to_user_id = ?",
+                    [msg.message, msg.from_user_id, msg.to_user_id]
+                );
+                console.log("Message inserted into database");
+
+                const data = await con.query(
+                    "SELECT socket_id FROM users WHERE id = ?",
+                    [msg.to_user_id]
+                );
+                console.log(data);
+                io.to(data[0][0].socket_id).emit("chat_message", msg);
+            } catch (error) {
+                console.log("error", error);
+            }
+        });
+    } catch (error) {
+        console.log("error", error);
+    }
+
+    // When a client disconnects
+    socket.on("disconnect", () => {
+        console.log("user disconnected");
+    });
+});
+server.listen(3001, () => console.log("server started at port 3001"));
+
+=======================================================================
 two user chat(particular) on postman using soc with
 
 const express = require("express");
