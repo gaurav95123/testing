@@ -1,0 +1,85 @@
+javascript object
+
+
+// let lecture = 10;
+// let section = 3
+// let title = "javascript"
+// console.log("Hello World3")
+// let coures = {
+//   lecture: 1,
+//   section: 3,
+//   title: "Javascript",
+//   notes: {
+//     introduction: "welcome to javascript"
+//   },
+//   enroll() {
+//     console.log("you are successfully enrolled.")
+//   }
+// }
+// coures.price = 100;
+// console.log(coures)
+// console.log(coures.enroll())
+
+// using constructor
+
+// function Course(title) {
+//   this.title = title,
+//     this.enroll = function () {
+//       console.log("you are enrolled successfully.")
+//     }
+//   return this
+
+// }
+// const coures = Course("javascript");
+// delete coures.title
+// coures.enroll()
+// console.log(coures)
+
+
+// const data = {
+//   id: 1,
+//   firstname: "garuav",
+//   lastname: "bisht",
+//   age: 25,
+//   city: "haldwani"
+// }
+// access full data object
+// console.log(data)
+
+// access single property
+// console.log(data.firstname)
+
+// console.log(data.firstname, data.lastname)
+
+
+// create object
+// const person = {}
+// person.firstname = "meera",
+//   person.lastname = "bisht",
+//   person.age = 25
+// console.log(person.firstname, person.age)
+
+// create object using new keyword
+
+// const person = new Object()
+// person.firstname = "gaurav",
+//   person.lastname = "bisht",
+//   person.age = 25,
+//   person.city = "haldwani"
+
+// console.log(person.firstname, person.lastname, person.age, person.city)
+
+
+
+// add object key and value.
+const person = {
+  name: "John",
+  age: 30,
+  city: "New York"
+};
+// const array = Object.values(person)
+// console.log(array)
+person.dsg = "trainer"
+person.home = "haldwani"
+
+console.log(person)
