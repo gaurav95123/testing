@@ -1,4 +1,6 @@
 read this
+=====================================================================================================
+//multiple file upload through laravel mutator
 public function getFileUrlAttribute()
     {
         $config_path = config('img.rating.orignal_image');
@@ -14,3 +16,4 @@ public function getFileUrlAttribute()
         }
         return $data;
     }
+================================================================================================
