@@ -1,0 +1,16 @@
+read this
+public function getFileUrlAttribute()
+    {
+        $config_path = config('img.rating.orignal_image');
+        $file_url = null;
+        $data=[];
+        if (!empty($this->original["file_url"])) {
+            $commonService = new CommonService();
+          $file_urls = explode(",",$this->original["file_url"]);
+           foreach($file_urls as $files){
+            $file_url = $commonService->cloudImagePath($config_path. '/' . $files);
+            array_push($data,$file_url);
+           }
+        }
+        return $data;
+    }
