@@ -112,3 +112,26 @@ pool.getConnection()
 
 module.exports = pool;
 
+==================================================================================================================
+to user chat api
+public function chatuser(Request $request){
+
+    $user = auth()->user()->id;
+   
+    $touser = $request->to_user_id;
+
+    $data = Message::where(function($query) use ($user, $touser) {
+            $query->where('from_user_id', $user)
+                ->where('to_user_id', $touser);
+        })
+        ->orWhere(function($query) use ($user, $touser) {
+            $query->where('from_user_id', $touser)
+                ->where('to_user_id', $user);
+        })
+        ->latest()
+        ->get();
+
+    return $this->responseOK(['message' => 'Messages for user ' . $user], ["message" =>  $data]);
+}
+
+
