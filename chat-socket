@@ -133,5 +133,36 @@ public function chatuser(Request $request){
 
     return $this->responseOK(['message' => 'Messages for user ' . $user], ["message" =>  $data]);
 }
+=====================================================================================================
+same as it is above function add paginate 
+ public function userChat(Request $request)
+    {
+        $user = auth()->user()->id;
+        $touser = $request->to_user_id;
+        $data = Message::where(function ($query) use ($user, $touser) {
+            $query->where("from_user_id", $user)
+                ->where("to_user_id", $touser);
+        })
+            ->orWhere(function ($query) use ($user, $touser) {
+                $query->where("from_user_id", $touser)
+                    ->where("to_user_id", $user);
+            })
+        //    latest data with paginate pagination.
+            ->latest()
+            ->paginate(1);
+            // ->get();
+            
+        return $this->responseOk(["chat message between {$user} and {$touser}"],["message" => $data]);
+    }
+
+
+delete message function
+    public function deleteChat(Request $request, $id)
+    {
+        $del = Message::find($id)
+            ->delete();
+        return $this->responseOk(["message deleted  successfully!"]);
+    }
+
 
 
