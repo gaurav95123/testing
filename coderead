@@ -1352,8 +1352,74 @@ if($existingFriendship) {
 
 
 }
+===================================================================
+   public function listUser(Request $request) {
+        $user = auth()->user()->id;
+        $gender = $request->input('gender'); 
+    
+        $list = AddFriend::where(function ($query) use ($user) {
+            $query->where('from_user_id', $user)
+                  ->orWhere('to_user_id', $user);
+        })
+        ->get();
+    
+        $lists = $list->pluck("to_user_id");
+        $detail = $list->pluck("from_user_id");
+        $search = $request->search;
+        $age1= $request->age1;
+        $age2=$request->age2;
+        
+        $usersQuery = User::where('id', '!=', $user)
+                        ->whereNotIn('id', $lists)
+                        ->whereNotIn('id', $detail)
+                        ->where(function ($query) use ($search) {
+                            $query->where('first_name', 'LIKE', '%' . $search . '%')
+                                ->orWhere('last_name', 'LIKE', '%' . $search . '%')
+                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ['%' . $search . '%']);
+                                // ->orWhere('mobile_number', 'LIKE', '%' . $search . '%')
+                                // ->orWhere('email', 'LIKE', '%' . $search . '%');
+                        })
+                        ->where(function ($query) use ($age1,$age2) {
+                            if (!empty($age1) && !empty($age2)) {
+                                // Calculate birth date range based on provided age
+                                $fromDate = now()->subYears($age1)->addDay(); // Adjusting for leap years
+                                $toDate = now()->subYears($age2 + 1)->addDay(); // Adjusting for leap years
+                                $query->whereBetween('dob', [$toDate, $fromDate]);
+                            }
+                        });
+    
+        if ($gender && $gender !== 'all' && in_array($gender, ['male', 'female'])) {
+            $usersQuery->where('gender', $gender);
+        }
+    
+        $users = $usersQuery->latest()
+                    ->select([
+                        'id',           
+                        'first_name',
+                        'last_name',
+                        'email',
+                        'mobile_number',
+                        'dob',
+                        'gender',
+                        'image'
+                    ])
+                    // ->get();
+                    ->paginate(30);
+    
+        return $this->responseOk("Search.", ["user_data" =>  $users]);
+    }
 
 
+===============================
+public function userContact(Request $request){
+    $input = $request->only(['name', 'phone_number']);
+    $data=new Contact();
+    $data->phone_number=$input['phone_number'];
+    $data->name=$input['name'];
+    $data->save();
+    return $this->responseOk(['data'=>$data]);
+    
+}
 
 
 
