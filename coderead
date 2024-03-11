@@ -1422,6 +1422,72 @@ public function userContact(Request $request){
 }
 
 
+==============================================================================================
+
+public function updateContactList(Request $request){
+    $user=auth()->user()->id;
+    $contactsdata=$request->input('contacts');
+    $contacts=[];
+    foreach($contactsdata as  $contactdata){
+
+        $validator=Validator::make($contactdata,[
+            'name'=>'required|string',
+            // 'country_code'=>'required|string',
+            'phone_number' => 'required|string'
+        ],
+      [
+        'name.required'=>'name is required',
+        // 'country_code.required'=>'country_code is required',
+        'phone_number.required'=>'phone_number is required',
+      ]);
+        if($validator->fails()){
+            return $this->responseOk(['error' => $validator->errors()]);
+        }
+        $contacts[]=[
+            "user_id"=>$user,
+            "name"=>$contactdata['name'],
+            // "country_code"=>$contactdata["country_code"],
+            "phone_number"=>$contactdata["phone_number"],
+        ];
+    }
+    Contact::whereUserId($user)->delete();
+    Contact::insert($contacts);
+    return $this->responseOk(['contact'=>$contacts]);
+
+}
+
+
+public function contactUserList(Request $request){
+    $user = auth()->user()->id;
+
+    // Fetch matched users
+    $matchedUsers = DB::table('contacts')
+        ->join('users', 'contacts.phone_number', '=', 'users.mobile_number')
+        ->select('users.*')
+        ->where('contacts.user_id', $user)
+        ->get()
+        ->toArray();
+
+    // Fetch non-matched users
+    $nonMatchedUsers = DB::table('contacts')
+        ->leftJoin('users', 'contacts.phone_number', '=', 'users.mobile_number')
+        ->select('contacts.*')
+        ->where('contacts.user_id', $user)
+        ->whereNull('users.mobile_number') // Filter out non-matched users
+        ->get()
+        ->toArray();
+
+    // Combine both matched and non-matched users into a single array
+    $data = [
+        'matched_both_table' => $matchedUsers,
+        'non_matched_table' => $nonMatchedUsers
+    ];
+
+    return $this->responseOk(["data" => $data]);
+}
+
+
+
 
 
 
