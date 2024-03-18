@@ -1542,6 +1542,9 @@ io.on("connection", async (socket) => {
 });
 const PORT =3001
 server.listen(PORT, () => console.log("server started at port " + PORT));
+===================================
+my_ip
+http://192.168.3.120/capital_loyalty_admin/api/v1
 
 
 
