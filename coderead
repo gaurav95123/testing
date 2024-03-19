@@ -2177,5 +2177,70 @@ class ChatController extends ResponseController
 }
 
 
+===============================================================
+public function uploadImage(Request $request)
+{
+    // Validation rules for the image
+    $validator = Validator::make($request->all(), [
+        'image' => 'required|mimes:png,jpg,jpeg,gif'
+    ]);
+
+    // Check if validation fails
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Please fix the errors',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    // Handle image upload
+    $img = $request->file('image'); // Retrieving the uploaded image
+    $ext = $img->getClientOriginalExtension(); // Get the original extension of the file
+    $imageName = time() . '.' . $ext; // Generate a unique name for the image
+    $img->move(public_path('uploads'), $imageName); // Move the image to the 'public/uploads' directory
+
+    // Create a new Image model instance
+    $image = new Image;
+    $image->image = $imageName; // Assign the image name to the 'image' property of the Image model
+    $image->save(); // Save the model instance to the database
+
+    // Return response with success message and image details
+    return response()->json([
+        'status' => true,
+        'message' => 'Image uploaded successfully.',
+        'path' => asset('uploads/' . $imageName), // Provide the URL to access the uploaded image
+        'data' => $image // Provide the Image model data
+    ]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
